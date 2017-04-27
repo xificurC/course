@@ -37,12 +37,8 @@ import qualified Prelude as P(fmap, return, (>>=))
 -- * The law of right identity
 --   `∀x. x <*> pure id ≅ x`
 class Functor f => Applicative f where
-  pure ::
-    a -> f a
-  (<*>) ::
-    f (a -> b)
-    -> f a
-    -> f b
+  pure :: a -> f a
+  (<*>) :: f (a -> b) -> f a -> f b
 
 infixl 4 <*>
 
@@ -56,13 +52,8 @@ infixl 4 <*>
 --
 -- >>> (+1) <$> (1 :. 2 :. 3 :. Nil)
 -- [2,3,4]
-(<$>) ::
-  Applicative f =>
-  (a -> b)
-  -> f a
-  -> f b
-(<$>) =
-  error "todo: Course.Applicative#(<$>)"
+(<$>) :: Applicative f => (a -> b) -> f a -> f b
+(<$>) = (<*>) . pure
 
 -- | Insert into Id.
 --
@@ -71,17 +62,10 @@ infixl 4 <*>
 -- >>> Id (+10) <*> Id 8
 -- Id 18
 instance Applicative Id where
-  pure ::
-    a
-    -> Id a
-  pure =
-    error "todo: Course.Applicative pure#instance Id"
-  (<*>) :: 
-    Id (a -> b)
-    -> Id a
-    -> Id b
-  (<*>) =
-    error "todo: Course.Applicative (<*>)#instance Id"
+  pure :: a -> Id a
+  pure = Id
+  (<*>) :: Id (a -> b) -> Id a -> Id b
+  (<*>) (Id f) x = f <$> x
 
 -- | Insert into a List.
 --
@@ -90,17 +74,12 @@ instance Applicative Id where
 -- >>> (+1) :. (*2) :. Nil <*> 1 :. 2 :. 3 :. Nil
 -- [2,3,4,2,4,6]
 instance Applicative List where
-  pure ::
-    a
-    -> List a
-  pure =
-    error "todo: Course.Applicative pure#instance List"
-  (<*>) ::
-    List (a -> b)
-    -> List a
-    -> List b
-  (<*>) =
-    error "todo: Course.Apply (<*>)#instance List"
+  pure :: a -> List a
+  pure = (:. Nil)
+  (<*>) :: List (a -> b) -> List a -> List b
+  (<*>) Nil _ = Nil
+  (<*>) _ Nil = Nil
+  (<*>) (f:.fs) l = (f <$> l) ++ (fs <*> l)
 
 -- | Insert into an Optional.
 --
@@ -115,17 +94,12 @@ instance Applicative List where
 -- >>> Full (+8) <*> Empty
 -- Empty
 instance Applicative Optional where
-  pure ::
-    a
-    -> Optional a
-  pure =
-    error "todo: Course.Applicative pure#instance Optional"
-  (<*>) ::
-    Optional (a -> b)
-    -> Optional a
-    -> Optional b
-  (<*>) =
-    error "todo: Course.Apply (<*>)#instance Optional"
+  pure :: a -> Optional a
+  pure = Full
+  (<*>) :: Optional (a -> b) -> Optional a -> Optional b
+  (<*>) Empty _ = Empty
+  (<*>) _ Empty = Empty
+  (<*>) (Full f) x = f <$> x
 
 -- | Insert into a constant function.
 --
